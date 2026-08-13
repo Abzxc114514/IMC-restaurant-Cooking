@@ -142,9 +142,13 @@ public class CookingController {
             case FRY_FINAL -> tickFryFinal(player, mc);
             case STORE -> tickStore(player, mc);
             case DONE -> {
-                IMCCookingMod.send(player, Component.literal("§b[IMC] 中式汉堡制作完成！"));
-                running = false;
-                state = State.IDLE;
+                IMCCookingMod.send(player, Component.literal("§b[IMC] 中式汉堡制作完成！3秒后自动开始下一单。"));
+                // 自动循环：等待 3 秒后重新回到村民交易步骤，无需手按 J
+                state = State.GOTO_VILLAGER;
+                subStep = 0;
+                progress = 0;
+                waitTicks = 3 * 20;
+                BaritoneBridge.gotoPos(config.gotoX, config.gotoY, config.gotoZ);
             }
             default -> {
             }
