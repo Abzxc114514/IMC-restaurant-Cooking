@@ -54,13 +54,7 @@ public class UtensilBindingManager {
             IMCCookingMod.send(player, Text.literal("§c[IMC] 没有更多厨具需要绑定。"));
             return;
         }
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.world != null && !type.matchesBlockState(mc.world, pos)) {
-            IMCCookingMod.send(player, Text.literal(
-                    "§c[IMC] 该方块不是 §e" + type.getDisplayName()
-                            + " §c（应为 " + type.getBlockId() + "），请对准正确的方块。"));
-            return;
-        }
+        // 不强制校验方块类型，玩家对准任意方块即可绑定
         utensilPos.put(type, pos);
         IMCCookingMod.send(player, Text.literal(
                 String.format("§a[IMC] 绑定成功 §f[%d/6]§a：§e%s §a-> §7%s",
@@ -111,8 +105,8 @@ public class UtensilBindingManager {
         UtensilType type = currentUtensil();
         if (type == null) return;
         IMCCookingMod.send(player, Text.literal(
-                "§d[IMC] 请对准 §e" + type.getDisplayName()
-                        + " §d(" + type.getBlockId() + ") §d方块，按 §fI §d绑定。"));
+                "§d[IMC] 请对准你要作为 §e" + type.getDisplayName()
+                        + " §d的方块（推荐 " + type.getBlockId() + "），按 §fI §d绑定。"));
     }
 
     private UtensilType currentUtensil() {
