@@ -1,5 +1,6 @@
 package com.imc.cooking;
 
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -107,8 +108,11 @@ public class CookingConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        // 1.21.11 起 mouseClicked 签名改为 (Click, boolean)，坐标与按键从 Click 事件对象获取
+        if (click.button() == 0) {
+            double mouseX = click.x();
+            double mouseY = click.y();
             if (mouseX >= leftX + 2 && mouseX < leftX + PANEL_WIDTH - 2) {
                 for (int i = 0; i < DishList.DISHES.size(); i++) {
                     int y = listY + i * 12;
@@ -121,7 +125,7 @@ public class CookingConfigScreen extends Screen {
                 }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(click, doubled);
     }
 
     @Override

@@ -169,8 +169,8 @@ public class CookingController {
         float pitch = (float) -Math.toDegrees(Math.atan2(dy, distXZ));
         player.setYaw(yaw);
         player.setPitch(pitch);
-        player.prevYaw = player.getYaw();
-        player.prevPitch = player.getPitch();
+        player.lastYaw = player.getYaw();
+        player.lastPitch = player.getPitch();
         player.headYaw = player.getYaw();
         player.bodyYaw = player.getYaw();
     }
@@ -359,8 +359,8 @@ public class CookingController {
         if (Math.abs(dpitch) > step) dpitch = (float) (Math.signum(dpitch) * step);
         player.setYaw(curYaw + dyaw);
         player.setPitch(curPitch + dpitch);
-        player.prevYaw = player.getYaw();
-        player.prevPitch = player.getPitch();
+        player.lastYaw = player.getYaw();
+        player.lastPitch = player.getPitch();
         player.headYaw = player.getYaw();
         player.bodyYaw = player.getYaw();
     }
@@ -451,7 +451,7 @@ public class CookingController {
         for (int i = 0; i < 9; i++) {
             var stack = inv.getStack(i);
             if (!stack.isEmpty() && stack.getName().getString().contains(itemName)) {
-                inv.selectedSlot = i;
+                inv.setSelectedSlot(i);
                 return;
             }
         }
