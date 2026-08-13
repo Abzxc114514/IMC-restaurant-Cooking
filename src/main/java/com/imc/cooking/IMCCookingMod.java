@@ -2,22 +2,18 @@ package com.imc.cooking;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * IMC Restaurant Cooking 客户端入口。
+ * IMC Restaurant Cooking 客户端入口（1.21.4 Yarn 映射）。
  *
  * 按键（见 NewModTraeLookMe.md 第1.3节）：
- *   I - 绑定厨具（对准厨具方块按 I）
- *   B - 开始绑定流程
- *   J - 开始工作（执行烹饪流程）
- *   P - 打开 GUI（左侧菜品 / 右侧转头速度+移动速度）
- *   O - 绑定菜品存储地
- *   U - 跳过当前厨具绑定
+ *   I - 绑定厨具  B - 开始绑定  J - 开始工作
+ *   P - 打开 GUI  O - 绑定存储  U - 跳过绑定
  */
 public class IMCCookingMod implements ClientModInitializer {
     public static final String MOD_ID = "imccooking";
@@ -55,19 +51,19 @@ public class IMCCookingMod implements ClientModInitializer {
     }
 
     private void onPressI() {
-        LocalPlayer player = Minecraft.getInstance().player;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         bindingManager.bindUtensil(player);
     }
 
     private void onPressB() {
-        LocalPlayer player = Minecraft.getInstance().player;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         bindingManager.startBinding(player);
     }
 
     private void onPressJ() {
-        LocalPlayer player = Minecraft.getInstance().player;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         if (controller.isRunning()) {
             controller.stop(player);
@@ -77,52 +73,38 @@ public class IMCCookingMod implements ClientModInitializer {
     }
 
     private void onPressP() {
-        Minecraft mc = Minecraft.getInstance();
+        MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null) return;
         mc.setScreen(new CookingConfigScreen(config));
     }
 
     private void onPressO() {
-        LocalPlayer player = Minecraft.getInstance().player;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         bindingManager.bindStorage(player);
     }
 
     private void onPressU() {
-        LocalPlayer player = Minecraft.getInstance().player;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         bindingManager.skipCurrent(player);
     }
 
-    private void onClientTick(Minecraft mc) {
-        LocalPlayer player = mc.player;
+    private void onClientTick(MinecraftClient mc) {
+        ClientPlayerEntity player = mc.player;
         if (player == null) return;
         controller.tick(player);
     }
 
-    public CookingConfig getConfig() {
-        return config;
+    public CookingConfig getConfig() { return config; }
+    public UtensilBindingManager getBindingManager() { return bindingManager; }
+    public CookingController getController() { return controller; }
+
+    public static void send(ClientPlayerEntity player, Text text) {
+        if (player != null) player.sendMessage(text, false);
     }
 
-    public UtensilBindingManager getBindingManager() {
-        return bindingManager;
-    }
-
-    public CookingController getController() {
-        return controller;
-    }
-
-    /** 向玩家发送聊天框消息。 */
-    public static void send(LocalPlayer player, Component component) {
-        if (player != null) {
-            player.displayClientMessage(component, false);
-        }
-    }
-
-    /** 向玩家发送字符串消息。 */
-    public static void send(LocalPlayer player, String text) {
-        if (player != null) {
-            player.displayClientMessage(Component.literal(text), false);
-        }
+    public static void send(ClientPlayerEntity player, String text) {
+        if (player != null) player.sendMessage(Text.literal(text), false);
     }
 }

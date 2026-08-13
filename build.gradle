@@ -9,7 +9,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'net.fabricmc:fabric-loom:1.14.10'
+        classpath 'net.fabricmc:fabric-loom:1.9.2'
     }
 }
 
@@ -31,18 +31,13 @@ repositories {
         name = 'Fabric'
         url = 'https://maven.fabricmc.net/'
     }
-    // Baritone (软依赖，仅在运行时需要，编译时通过反射调用)
-    maven {
-        name = 'Baritone'
-        url = 'https://maven.seedfinding.com/'
-    }
     maven { url = 'https://maven.aliyun.com/repository/public' }
     mavenCentral()
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"

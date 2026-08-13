@@ -2,7 +2,7 @@ package com.imc.cooking;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,9 +19,15 @@ import java.nio.file.Path;
  */
 public class CookingConfig {
 
-    private static final Path CONFIG_DIR = Minecraft.getInstance().gameDirectory.toPath().resolve("config");
-    private static final Path CONFIG_FILE = CONFIG_DIR.resolve("imc_cooking.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    private static Path configDir() {
+        return MinecraftClient.getInstance().runDirectory.toPath().resolve("config");
+    }
+
+    private static Path configFile() {
+        return configDir().resolve("imc_cooking.json");
+    }
 
     /** 转头速度：每 tick 旋转的角度。值越大转得越快。 */
     public double turnSpeed = 30.0;
@@ -39,9 +45,11 @@ public class CookingConfig {
 
     public static CookingConfig load() {
         try {
-            Files.createDirectories(CONFIG_DIR);
-            if (Files.exists(CONFIG_FILE)) {
-                String json = Files.readString(CONFIG_FILE);
+            Path dir = configDir();
+            Path file = configFile();
+            Files.createDirectories(dir);
+            if (Files.exists(file)) {
+                String json = Files.readString(file);
                 CookingConfig cfg = GSON.fromJson(json, CookingConfig.class);
                 return cfg != null ? cfg : new CookingConfig();
             }
@@ -53,8 +61,9 @@ public class CookingConfig {
 
     public void save() {
         try {
-            Files.createDirectories(CONFIG_DIR);
-            Files.writeString(CONFIG_FILE, GSON.toJson(this));
+            Path dir = configDir();
+            Files.createDirectories(dir);
+            Files.writeString(configFile(), GSON.toJson(this));
         } catch (IOException e) {
             IMCCookingMod.LOGGER.error("[IMCCooking] 配置保存失败", e);
         }
