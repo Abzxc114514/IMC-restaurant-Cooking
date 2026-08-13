@@ -157,7 +157,7 @@ public class CookingController {
     private void tickGotoVillager(LocalPlayer player, Minecraft mc) {
         if (BaritoneBridge.hasReached(player, config.gotoX, config.gotoY, config.gotoZ, 3.0)) {
             BaritoneBridge.stop();
-            // gotoX/Y/Z 即"原材料供给村民"所在坐标，直接对最近村民右键交易
+            // gotoX/Y/Z 即"原材料供给"村民所在坐标，直接对最近村民右键交易
             Villager target = findNearestVillager(player, mc);
             if (target == null) {
                 IMCCookingMod.send(player, Component.literal("§c[IMC] 附近未找到村民，稍后重试。"));
