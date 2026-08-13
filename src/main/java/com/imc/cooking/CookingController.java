@@ -153,19 +153,19 @@ public class CookingController {
 
     // ============ 各状态实现 ============
 
-    /** 步骤1：Baritone 寻路到村民坐标，到达后右键"原材料供给村民"。 */
+    /** 步骤1：Baritone 寻路到村民坐标，到达后右键村民交易。 */
     private void tickGotoVillager(LocalPlayer player, Minecraft mc) {
         if (BaritoneBridge.hasReached(player, config.gotoX, config.gotoY, config.gotoZ, 3.0)) {
             BaritoneBridge.stop();
-            // 扫描附近村民，优先选"原材料供给"村民
-            Villager target = findSupplyVillager(player, mc);
+            // gotoX/Y/Z 即"原材料供给村民"所在坐标，直接对最近村民右键交易
+            Villager target = findNearestVillager(player, mc);
             if (target == null) {
-                IMCCookingMod.send(player, Component.literal("§c[IMC] 附近未找到原材料供给村民，稍后重试。"));
+                IMCCookingMod.send(player, Component.literal("§c[IMC] 附近未找到村民，稍后重试。"));
                 waitTicks = 20;
                 return;
             }
             IMCCookingMod.send(player, Component.literal(
-                    "§a[IMC] 已到达村民位置，对原材料供给村民右键交易。"));
+                    "§a[IMC] 已到达村民位置，右键交易。"));
             lookAtEntity(player, target);
             interactEntity(mc, target);
             waitTicks = 2 * 20;
@@ -177,36 +177,24 @@ public class CookingController {
         }
     }
 
-    /**
-     * 扫描玩家附近的村民，优先返回自定义名包含"原材料供给"的村民；
-     * 找不到则返回最近的村民；都没有返回 null。
-     */
-    private Villager findSupplyVillager(LocalPlayer player, Minecraft mc) {
+    /** 返回玩家附近最近的村民；没有返回 null。 */
+    private Villager findNearestVillager(LocalPlayer player, Minecraft mc) {
         if (mc.level == null) return null;
         Vec3 eye = player.getEyePosition();
         AABB box = AABB.ofSize(eye, 16.0, 8.0, 16.0);
         java.util.List<Villager> villagers = mc.level.getEntitiesOfClass(Villager.class, box);
         if (villagers.isEmpty()) return null;
 
-        Villager supply = null;
-        double supplyDist = Double.MAX_VALUE;
         Villager nearest = null;
         double nearestDist = Double.MAX_VALUE;
         for (Villager v : villagers) {
             double d = v.distanceToSqr(player);
-            Component name = v.getCustomName();
-            if (name != null && name.getString().contains("原材料供给")) {
-                if (d < supplyDist) {
-                    supplyDist = d;
-                    supply = v;
-                }
-            }
             if (d < nearestDist) {
                 nearestDist = d;
                 nearest = v;
             }
         }
-        return supply != null ? supply : nearest;
+        return nearest;
     }
 
     /** 让玩家看向实体（眼睛高度）。 */
