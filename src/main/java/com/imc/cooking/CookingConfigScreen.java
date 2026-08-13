@@ -73,8 +73,8 @@ public class CookingConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        // 背景
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+        // 不调用 super 的 renderBackground，避免高斯模糊导致看不清
+        graphics.fill(0, 0, this.width, this.height, 0xC0101010);
 
         // 标题
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
