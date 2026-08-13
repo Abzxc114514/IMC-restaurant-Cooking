@@ -63,9 +63,6 @@ public class CookingConfigScreen extends Screen {
 
     @Override
     public void render(DrawContext graphics, int mouseX, int mouseY, float delta) {
-        // 不调用 super 的 renderBackground，避免高斯模糊导致看不清
-        graphics.fill(0, 0, this.width, this.height, 0xC0101010);
-
         graphics.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 8, 0xFFFFFF);
 
         graphics.fill(leftX, topY, leftX + PANEL_WIDTH, this.height - FOOTER_HEIGHT, 0x80000000);
@@ -104,6 +101,12 @@ public class CookingConfigScreen extends Screen {
                 rightX + 6, infoY + 12, 0xA0FFA0, false);
 
         super.render(graphics, mouseX, mouseY, delta);
+    }
+
+    // 重写背景渲染：仅用纯色覆盖，不调用 super 以避免高斯模糊导致看不清
+    @Override
+    public void renderBackground(DrawContext graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(0, 0, this.width, this.height, 0xC0101010);
     }
 
     @Override
