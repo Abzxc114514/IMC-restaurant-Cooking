@@ -1,0 +1,14 @@
+{
+  "key.categories.imccooking.main": "IMC Cooking",
+  "key.imccooking.bind_utensil": "Bind Utensil (I)",
+  "key.imccooking.start_bind": "Start Binding (B)",
+  "key.imccooking.start_work": "Start Cooking (J)",
+  "key.imccooking.open_gui": "Open GUI (P)",
+  "key.imccooking.bind_storage": "Bind Dish Storage (O)",
+  "key.imccooking.skip_bind": "Skip This Utensil (U)",
+  "gui.imccooking.title": "IMC Cooking - Configuration",
+  "gui.imccooking.dishes": "Dishes",
+  "gui.imccooking.settings": "Settings",
+  "gui.imccooking.turn_speed": "Turn Speed",
+  "gui.imccooking.move_speed": "Move Speed"
+}

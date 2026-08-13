@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "imc_cooking",
+  "version": "${version}",
+  "name": "IMC Restaurant Cooking",
+  "description": "IMC餐厅烹饪自动化模组 - 集成Baritone寻路、厨具绑定、GUI配置。自动制作中式汉堡等15道菜品。",
+  "authors": [
+    "IMC"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Abzxc114514/IMC-restaurant-Cooking",
+    "sources": "https://github.com/Abzxc114514/IMC-restaurant-Cooking"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.imc.cooking.IMCCookingMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "baritone": "*"
+  }
+}

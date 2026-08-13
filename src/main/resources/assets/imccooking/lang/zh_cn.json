@@ -1,0 +1,14 @@
+{
+  "key.categories.imccooking.main": "IMC烹饪",
+  "key.imccooking.bind_utensil": "绑定厨具 (I)",
+  "key.imccooking.start_bind": "开始绑定 (B)",
+  "key.imccooking.start_work": "开始工作 (J)",
+  "key.imccooking.open_gui": "打开GUI (P)",
+  "key.imccooking.bind_storage": "绑定菜品存储地 (O)",
+  "key.imccooking.skip_bind": "跳过此厨具绑定 (U)",
+  "gui.imccooking.title": "IMC烹饪 - 配置",
+  "gui.imccooking.dishes": "菜品",
+  "gui.imccooking.settings": "设置",
+  "gui.imccooking.turn_speed": "转头速度",
+  "gui.imccooking.move_speed": "移动速度"
+}
