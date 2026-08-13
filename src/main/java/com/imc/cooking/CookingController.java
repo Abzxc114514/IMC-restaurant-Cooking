@@ -5,7 +5,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -150,13 +153,21 @@ public class CookingController {
 
     // ============ 各状态实现 ============
 
-    /** 步骤1：Baritone 寻路到村民坐标，到达后右键村民。 */
+    /** 步骤1：Baritone 寻路到村民坐标，到达后右键"原材料供给村民"。 */
     private void tickGotoVillager(LocalPlayer player, Minecraft mc) {
         if (BaritoneBridge.hasReached(player, config.gotoX, config.gotoY, config.gotoZ, 3.0)) {
             BaritoneBridge.stop();
-            IMCCookingMod.send(player, Component.literal("§a[IMC] 已到达村民位置，开始交易。"));
-            // 简化：直接对准准星方向的村民右键（真实实现需扫描村民实体）
-            useItemOnTarget(player, mc);
+            // 扫描附近村民，优先选"原材料供给"村民
+            Villager target = findSupplyVillager(player, mc);
+            if (target == null) {
+                IMCCookingMod.send(player, Component.literal("§c[IMC] 附近未找到原材料供给村民，稍后重试。"));
+                waitTicks = 20;
+                return;
+            }
+            IMCCookingMod.send(player, Component.literal(
+                    "§a[IMC] 已到达村民位置，对原材料供给村民右键交易。"));
+            lookAtEntity(player, target);
+            interactEntity(mc, target);
             waitTicks = 2 * 20;
             state = State.TRADE;
             subStep = 0;
@@ -164,6 +175,63 @@ public class CookingController {
             // 持续等待 Baritone 寻路
             waitTicks = 20;
         }
+    }
+
+    /**
+     * 扫描玩家附近的村民，优先返回自定义名包含"原材料供给"的村民；
+     * 找不到则返回最近的村民；都没有返回 null。
+     */
+    private Villager findSupplyVillager(LocalPlayer player, Minecraft mc) {
+        if (mc.level == null) return null;
+        Vec3 eye = player.getEyePosition();
+        AABB box = AABB.ofSize(eye, 16.0, 8.0, 16.0);
+        java.util.List<Villager> villagers = mc.level.getEntitiesOfClass(Villager.class, box);
+        if (villagers.isEmpty()) return null;
+
+        Villager supply = null;
+        double supplyDist = Double.MAX_VALUE;
+        Villager nearest = null;
+        double nearestDist = Double.MAX_VALUE;
+        for (Villager v : villagers) {
+            double d = v.distanceToSqr(player);
+            Component name = v.getCustomName();
+            if (name != null && name.getString().contains("原材料供给")) {
+                if (d < supplyDist) {
+                    supplyDist = d;
+                    supply = v;
+                }
+            }
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = v;
+            }
+        }
+        return supply != null ? supply : nearest;
+    }
+
+    /** 让玩家看向实体（眼睛高度）。 */
+    private void lookAtEntity(LocalPlayer player, Entity entity) {
+        Vec3 eye = player.getEyePosition();
+        Vec3 target = entity.getEyePosition();
+        double dx = target.x - eye.x;
+        double dy = target.y - eye.y;
+        double dz = target.z - eye.z;
+        double distXZ = Math.sqrt(dx * dx + dz * dz);
+        float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, distXZ));
+        player.setYRot(yaw);
+        player.setXRot(pitch);
+        player.yRotO = player.getYRot();
+        player.xRotO = player.getXRot();
+        player.yHeadRot = player.getYRot();
+        player.yBodyRot = player.getYRot();
+    }
+
+    /** 右键交互实体。 */
+    private void interactEntity(Minecraft mc, Entity entity) {
+        if (mc.gameMode == null || mc.player == null) return;
+        mc.gameMode.interact(mc.player, entity, InteractionHand.MAIN_HAND);
+        mc.player.swing(InteractionHand.MAIN_HAND);
     }
 
     /** 步骤2：交易（购买面粉等）。简化实现，直接进入搅拌。 */
@@ -409,14 +477,6 @@ public class CookingController {
             mc.gameMode.useItemOn(mc.player, InteractionHand.MAIN_HAND, bhr);
             mc.player.swing(InteractionHand.MAIN_HAND);
         }
-    }
-
-    /** 右键点击准星方向（用于实体/通用）。 */
-    private void useItemOnTarget(LocalPlayer player, Minecraft mc) {
-        if (mc.gameMode != null) {
-            mc.gameMode.useItem(player, InteractionHand.MAIN_HAND);
-        }
-        player.swing(InteractionHand.MAIN_HAND);
     }
 
     /**
