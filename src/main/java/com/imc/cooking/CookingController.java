@@ -2,6 +2,8 @@ package com.imc.cooking;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
@@ -9,6 +11,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
 /**
@@ -111,14 +114,80 @@ public class CookingController {
     private void tickGotoVillager(ClientPlayerEntity player, MinecraftClient mc) {
         if (BaritoneBridge.hasReached(player, config.gotoX, config.gotoY, config.gotoZ, 3.0)) {
             BaritoneBridge.stop();
-            IMCCookingMod.send(player, Text.literal("§a[IMC] 已到达村民位置，开始交易。"));
-            useItemOnTarget(player, mc);
+            // 扫描附近村民，优先选"原材料供给"村民
+            VillagerEntity target = findSupplyVillager(player, mc);
+            if (target == null) {
+                IMCCookingMod.send(player, Text.literal("§c[IMC] 附近未找到原材料供给村民，稍后重试。"));
+                waitTicks = 20;
+                return;
+            }
+            IMCCookingMod.send(player, Text.literal(
+                    "§a[IMC] 已到达村民位置，对原材料供给村民右键交易。"));
+            lookAtEntity(player, target);
+            interactEntity(mc, target);
             waitTicks = 2 * 20;
             state = State.TRADE;
             subStep = 0;
         } else {
             waitTicks = 20;
         }
+    }
+
+    /**
+     * 扫描玩家附近的村民，优先返回自定义名包含"原材料供给"的村民；
+     * 找不到则返回最近的村民；都没有返回 null。
+     */
+    private VillagerEntity findSupplyVillager(ClientPlayerEntity player, MinecraftClient mc) {
+        if (mc.world == null) return null;
+        Vec3d eye = player.getEyePos();
+        Box box = Box.of(eye, 16.0, 8.0, 16.0);
+        java.util.List<VillagerEntity> villagers = mc.world.getEntitiesByClass(VillagerEntity.class, box, e -> true);
+        if (villagers.isEmpty()) return null;
+
+        VillagerEntity supply = null;
+        double supplyDist = Double.MAX_VALUE;
+        VillagerEntity nearest = null;
+        double nearestDist = Double.MAX_VALUE;
+        for (VillagerEntity v : villagers) {
+            double d = v.squaredDistanceTo(player);
+            Text name = v.getCustomName();
+            if (name != null && name.getString().contains("原材料供给")) {
+                if (d < supplyDist) {
+                    supplyDist = d;
+                    supply = v;
+                }
+            }
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = v;
+            }
+        }
+        return supply != null ? supply : nearest;
+    }
+
+    /** 让玩家看向实体（眼睛高度）。 */
+    private void lookAtEntity(ClientPlayerEntity player, Entity entity) {
+        Vec3d eye = player.getEyePos();
+        Vec3d target = entity.getEyePos();
+        double dx = target.x - eye.x;
+        double dy = target.y - eye.y;
+        double dz = target.z - eye.z;
+        double distXZ = Math.sqrt(dx * dx + dz * dz);
+        float yaw = (float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0);
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, distXZ));
+        player.setYaw(yaw);
+        player.setPitch(pitch);
+        player.prevYaw = player.getYaw();
+        player.prevPitch = player.getPitch();
+        player.headYaw = player.getYaw();
+        player.bodyYaw = player.getYaw();
+    }
+
+    /** 右键交互实体。 */
+    private void interactEntity(MinecraftClient mc, Entity entity) {
+        if (mc.interactionManager == null || mc.player == null) return;
+        mc.interactionManager.interactEntity(mc.player, entity, Hand.MAIN_HAND);
+        mc.player.swingHand(Hand.MAIN_HAND);
     }
 
     private void tickTrade(ClientPlayerEntity player, MinecraftClient mc) {
