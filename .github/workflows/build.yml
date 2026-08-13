@@ -33,7 +33,8 @@ jobs:
       - name: Rename jar
         run: |
           mkdir -p artifacts
-          cp build/libs/*.jar artifacts/imc-restaurant-cooking-1.0.0-MC${{ steps.mc.outputs.version }}.jar
+          JAR=$(find build/libs -name "*.jar" ! -name "*-sources.jar" | head -1)
+          cp "$JAR" artifacts/imc-restaurant-cooking-1.0.0-MC${{ steps.mc.outputs.version }}.jar
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
